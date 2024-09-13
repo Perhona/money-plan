@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="SERVICE_LOG_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/var/log/keumbang-resource/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/var/log/keumbang-resource/application-%d{yyyy-MM-dd}.log</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 1. Output SQL to console-->
+    <logger name="org.hibernate.SQL" additivity="false" level="DEBUG" >
+        <appender-ref ref="SERVICE_LOG_APPENDER"/>
+    </logger>
+
+    <!-- 2. Output SQL parameters-->
+    <logger name="org.hibernate.orm.jdbc.bind" additivity="false" level="TRACE" >
+        <appender-ref ref="SERVICE_LOG_APPENDER"/>
+    </logger>
+
+    <!-- 3. Spring Security 경로 체크 로깅 -->
+    <logger name="org.springframework.security.web.access.intercept.RequestMatcherDelegatingAuthorizationManager" additivity="false" level="TRACE" >
+        <appender-ref ref="SERVICE_LOG_APPENDER"/>
+    </logger>
+
+    <!-- 4. Spring Security 에러 로깅 -->
+    <logger name="org.springframework.security.web.access.ExceptionTranslationFilter" additivity="false" level="TRACE" >
+        <appender-ref ref="SERVICE_LOG_APPENDER"/>
+    </logger>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="SERVICE_LOG_APPENDER"/>
+    </root>
+</configuration>
+
