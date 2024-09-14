@@ -18,16 +18,27 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
         show_sql: false
         highlight_sql: true
 
+  # Redis 설정
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
   web:
     resources:
       add-mappings: false # 정적 리소스 매핑 비활성화
+
+# JWT 설정
+jwt:
+  secret: ${JWT_SECRET}
 
 logging:
   config: classpath:logback-${spring.profiles.active}.xml

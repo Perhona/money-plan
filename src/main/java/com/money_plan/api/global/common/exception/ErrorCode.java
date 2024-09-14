@@ -13,6 +13,7 @@ public enum ErrorCode {
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 엔드포인트를 찾을 수 없습니다."),
 
     // 인증&인가
+    PASSWORD_NOT_MATCHED(BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     AUTHENTICATION_FAILED(UNAUTHORIZED, "사용자 인증에 실패했습니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
     AUTHORIZATION_HEADER_MISSING(UNAUTHORIZED, "Authorization 헤더값이 유효하지 않습니다."),
@@ -24,6 +25,7 @@ public enum ErrorCode {
 
     //  사용자,
     ACCOUNT_ALREADY_REGISTERED(CONFLICT, "중복된 게정이 존재합니다."),
+    USER_NOT_FOUND(BAD_REQUEST, "사용자를 찾을 수 없습니다."),
     ;
 
 

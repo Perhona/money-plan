@@ -2,6 +2,7 @@ package com.money_plan.api.domain.auth.controller;
 
 import com.money_plan.api.domain.auth.dto.LoginRequestDto;
 import com.money_plan.api.domain.auth.dto.SignUpRequestDto;
+import com.money_plan.api.domain.auth.dto.TokenResponseDto;
 import com.money_plan.api.domain.auth.service.AuthService;
 import com.money_plan.api.global.common.exception.CustomException;
 import com.money_plan.api.global.common.exception.JwtAuthenticationException;
@@ -46,5 +47,23 @@ public class AuthController {
         CommonResponse<Long> response = CommonResponse.ok("회원가입에 성공했습니다.", authService.signUp(signUpRequestDto));
 
         return new ResponseEntity<>(response, response.getHttpStatus());
+    }
+
+    /**
+     * 사용자 로그인
+     *
+     * @param loginRequestDto 로그인 요청 DTO
+     * @return tokenResponseDto
+     * @throws CustomException 인증 실패 -> USER_NOT_FOUND, PASSWORD_NOT_MATCHED
+     */
+    @Operation(summary = "사용자 로그인", description = "사용자는 계정과 비밀번호로 로그인합니다.")
+    @ApiResponse(
+            responseCode = "200"
+            , description = "로그인 성공"
+            , content = @Content(mediaType = "application/json", schema = @Schema(implementation = TokenResponseDto.class))
+    )
+    @PostMapping("/login")
+    public ResponseEntity<CommonResponse<TokenResponseDto>> login(@RequestBody @Valid LoginRequestDto loginRequestDto, HttpServletResponse response) {
+        return new ResponseEntity<>(CommonResponse.ok("로그인에 성공하였습니다.", authService.login(loginRequestDto, response)), HttpStatus.OK);
     }
 }
