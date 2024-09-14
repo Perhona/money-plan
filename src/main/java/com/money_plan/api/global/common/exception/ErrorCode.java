@@ -3,8 +3,7 @@ package com.money_plan.api.global.common.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.*;
 
 @Getter
 public enum ErrorCode {
@@ -23,6 +22,8 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(UNAUTHORIZED, "refresh 토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요."),
     REFRESH_TOKEN_NOT_FOUND(UNAUTHORIZED, "refresh 토큰을 찾을 수 없습니다."),
 
+    //  사용자,
+    ACCOUNT_ALREADY_REGISTERED(CONFLICT, "중복된 게정이 존재합니다."),
     ;
 
 
