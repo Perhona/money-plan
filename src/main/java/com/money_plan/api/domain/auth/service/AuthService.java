@@ -2,22 +2,19 @@ package com.money_plan.api.domain.auth.service;
 
 import com.money_plan.api.domain.auth.dto.LoginRequestDto;
 import com.money_plan.api.domain.auth.dto.SignUpRequestDto;
+import com.money_plan.api.domain.auth.dto.TokenRequestDto;
 import com.money_plan.api.domain.auth.dto.TokenResponseDto;
-import com.money_plan.api.domain.auth.type.TokenType;
 import com.money_plan.api.domain.user.entity.User;
 import com.money_plan.api.domain.user.repository.UserRepository;
 import com.money_plan.api.global.common.exception.CustomException;
 import com.money_plan.api.global.common.exception.ErrorCode;
 import com.money_plan.api.global.common.util.PasswordManager;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +22,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordManager passwordManager;
-    private final RedisTokenService tokenService;
+    private final AbstractTokenService tokenService;
 
     @Transactional
     public long signUp(SignUpRequestDto signUpRequestDto) {
@@ -55,5 +52,13 @@ public class AuthService {
         // 기존 Refresh Token 삭제 & 신규 발급
         tokenService.deleteRefreshToken(user.getId());
         return tokenService.issueTokens(response, user.getAccount(), user.getId());
+    }
+
+    @Transactional
+    public TokenResponseDto reissueTokens(TokenRequestDto tokenRequestDto, HttpServletResponse response) {
+        String refreshToken = tokenRequestDto.getRefreshToken();
+
+        tokenService.validateRefreshToken(refreshToken);
+        return tokenService.reissueTokens(response, refreshToken);
     }
 }

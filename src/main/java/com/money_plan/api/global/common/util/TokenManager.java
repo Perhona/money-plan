@@ -15,4 +15,19 @@ public class TokenManager {
         return jwtTokenProvider.createJwt(tokenType, username, userId);
     }
 
+    public void validateToken(String token) {
+        jwtTokenProvider.validateToken(token);
+    }
+
+    public boolean isTokenOf(String token,TokenType tokenType) {
+        return jwtTokenProvider.getCategory(token).equals(tokenType.getName());
+    }
+
+    public String getUsername(String token) {
+        return jwtTokenProvider.getAccount(token);
+    }
+    public Long getUserId(String token){
+        return jwtTokenProvider.getUserId(token);
+    }
+
 }

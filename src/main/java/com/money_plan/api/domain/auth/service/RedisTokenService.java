@@ -1,25 +1,22 @@
 package com.money_plan.api.domain.auth.service;
 
-import com.money_plan.api.domain.auth.dto.TokenResponseDto;
-import com.money_plan.api.domain.auth.type.TokenType;
-import com.money_plan.api.domain.user.entity.User;
-import com.money_plan.api.global.common.exception.ErrorCode;
-import com.money_plan.api.global.common.exception.JwtAuthenticationException;
 import com.money_plan.api.global.common.util.TokenManager;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
 @Service
-@RequiredArgsConstructor
-public class RedisTokenService implements TokenService {
+@Primary
+public class RedisTokenService extends AbstractTokenService {
     private final RedisTemplate<String, Object> redisTemplate;
-    private final TokenManager tokenManager;
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token";
+
+    public RedisTokenService(TokenManager tokenManager, RedisTemplate<String, Object> redisTemplate) {
+        super(tokenManager);
+        this.redisTemplate = redisTemplate;
+    }
 
 
     @Override
@@ -46,24 +43,4 @@ public class RedisTokenService implements TokenService {
     private String generateKey(Long userId) {
         return String.format("%s:%s", REFRESH_TOKEN_PREFIX, userId);
     }
-
-    @Transactional
-    public TokenResponseDto issueTokens(HttpServletResponse response, String username, Long userId) {
-        // JWT 생성
-        String accessToken = tokenManager.createToken(TokenType.ACCESS, username, userId);
-        String refreshToken = tokenManager.createToken(TokenType.REFRESH, username, userId);
-
-        // Redis에 Refresh Token 저장
-        saveRefreshToken(userId, refreshToken, TokenType.REFRESH.getExpirationHour());
-
-        // Header 에 AT 추가
-        response.addHeader("Authorization", "Bearer " + accessToken);
-
-        // RT 응답
-        return TokenResponseDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
-    }
-
 }

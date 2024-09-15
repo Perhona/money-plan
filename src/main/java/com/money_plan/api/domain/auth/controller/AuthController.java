@@ -2,6 +2,7 @@ package com.money_plan.api.domain.auth.controller;
 
 import com.money_plan.api.domain.auth.dto.LoginRequestDto;
 import com.money_plan.api.domain.auth.dto.SignUpRequestDto;
+import com.money_plan.api.domain.auth.dto.TokenRequestDto;
 import com.money_plan.api.domain.auth.dto.TokenResponseDto;
 import com.money_plan.api.domain.auth.service.AuthService;
 import com.money_plan.api.global.common.exception.CustomException;
@@ -12,7 +13,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -65,5 +65,22 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<CommonResponse<TokenResponseDto>> login(@RequestBody @Valid LoginRequestDto loginRequestDto, HttpServletResponse response) {
         return new ResponseEntity<>(CommonResponse.ok("로그인에 성공하였습니다.", authService.login(loginRequestDto, response)), HttpStatus.OK);
+    }
+
+    /**
+     * Access Token 재발급, Refresh Token 갱신
+     *
+     * @return tokenResponseDto
+     * @throws JwtAuthenticationException RefreshToken이 유효하지 않은 경우
+     */
+    @Operation(summary = "Access Token 재발급, Refresh Token 갱신", description = "기존 Refresh Token으로 AccessToken과 RefreshToken을 재발급합니다. Access Token은 헤더에 저장됩니다.")
+    @ApiResponse(
+            responseCode = "200"
+            , description = "Access Token 재발급, Refresh Token 갱신 완료"
+            , content = @Content(mediaType = "application/json", schema = @Schema(implementation = TokenResponseDto.class))
+    )
+    @PostMapping("/reissue")
+    public ResponseEntity<CommonResponse<TokenResponseDto>> reissueAccessToken(@RequestBody @Valid TokenRequestDto tokenRequestDto, HttpServletResponse response) {
+        return new ResponseEntity<>(CommonResponse.ok("Access Token 재발급, Refresh Token 갱신에 성공했습니다.", authService.reissueTokens(tokenRequestDto, response)), HttpStatus.OK);
     }
 }
