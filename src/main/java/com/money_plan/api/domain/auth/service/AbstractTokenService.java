@@ -66,9 +66,9 @@ public abstract class AbstractTokenService {
 
     @Transactional
     public TokenResponseDto reissueTokens(HttpServletResponse response, String refreshToken) {
-        String username = tokenManager.getUsername(refreshToken);
+        String account = tokenManager.getAccount(refreshToken);
         Long userId = tokenManager.getUserId(refreshToken);
         deleteRefreshToken(userId);
-        return issueTokens(response, username, userId);
+        return issueTokens(response, account, userId);
     }
 }
