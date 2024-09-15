@@ -13,6 +13,7 @@ public class CommonResponse<T> {
     private final String message;
     @Schema(description = "응답 데이터")
     private final T data;
+    private static final String SUCCESS_MESSAGE = "요청이 성공적으로 처리되었습니다.";
 
     private CommonResponse(HttpStatus status, String message, T data) {
         this.httpStatus = status;
@@ -21,7 +22,7 @@ public class CommonResponse<T> {
     }
 
     public static <T> CommonResponse<T> ok(T data) {
-        return ok(null, data);
+        return ok(SUCCESS_MESSAGE, data);
     }
 
     public static <T> CommonResponse<T> ok(String message) {
