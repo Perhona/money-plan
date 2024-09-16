@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "category_budget", uniqueConstraints = {@UniqueConstraint(columnNames = {"monthly_budget_id", "category_id"})})
 @Getter
 @Builder
 @NoArgsConstructor

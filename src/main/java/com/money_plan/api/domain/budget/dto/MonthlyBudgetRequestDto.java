@@ -1,6 +1,7 @@
 package com.money_plan.api.domain.budget.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +13,7 @@ import java.util.List;
 @Builder
 @Getter
 @Schema(description = "월별 예산 설정 요청 DTO")
-public class MonthlyBudgetDto {
+public class MonthlyBudgetRequestDto {
     @Schema(description = "연도", example = "2024")
     @NotNull(message = "연도는 필수 입력 값입니다.")
     private int year;
@@ -24,8 +25,10 @@ public class MonthlyBudgetDto {
 
     @Schema(description = "총 예산 금액", example = "1000000")
     @NotNull(message = "총 예산 금액은 필수 입력 값입니다.")
+    @Min(value = 0, message = "총 예산 금액은 0원 이상으로 입력해주세요.")
     private Long totalBudget;
 
     @Schema(description = "카테고리별 예산 목록")
-    private List<CategoryBudgetDto> categoryBudgets;
+    @Valid
+    private List<CategoryBudgetDto> categoryBudgetDtoList;
 }

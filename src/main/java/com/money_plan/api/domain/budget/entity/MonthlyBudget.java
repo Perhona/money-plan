@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Table(name = "monthly_budget", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "year", "month"})})
 @Getter
 @Builder
 @NoArgsConstructor
@@ -51,5 +52,9 @@ public class MonthlyBudget {
     @PreUpdate
     protected void onUpdate() {
         this.modifiedAt = LocalDateTime.now();
+    }
+
+    public void setCategoryBudgets(List<CategoryBudget> categoryBudgetList) {
+        this.categoryBudgets = categoryBudgetList;
     }
 }
