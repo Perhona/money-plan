@@ -42,12 +42,15 @@ public class JwtFilter extends OncePerRequestFilter {
                 throw new JwtAuthenticationException(ErrorCode.AUTHORIZATION_HEADER_MISSING);
             }
 
-            //Bearer 부분 제거 후 순수 토큰만 획득
+            // Bearer 부분 제거 후 순수 토큰만 획득
             String accessToken = authorization.split(" ")[1];
 
-            //토큰 유효성 검증
+            // 토큰 유효성 검증
             tokenManager.validateToken(accessToken);
-            tokenManager.isTokenOf(accessToken, TokenType.ACCESS);
+            // 토큰 타입 확인
+            if (!tokenManager.isTokenOf(accessToken, TokenType.ACCESS)){
+                throw new JwtAuthenticationException(ErrorCode.TOKEN_TYPE_NOT_MATCHED);
+            };
 
             Long userId = tokenManager.getUserId(accessToken);
             String account = tokenManager.getAccount(accessToken);

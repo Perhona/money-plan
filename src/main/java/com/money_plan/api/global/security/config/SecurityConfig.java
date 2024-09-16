@@ -34,7 +34,7 @@ public class SecurityConfig {
 
     public static final String[] PERMIT_URL_ARRAY = {
             "/v3/api-docs/**", "/swagger-ui/**", "/v3/api-docs", "/swagger-ui.html",
-            "/error", "/signup", "/login", "/reissue"
+            "/error", "/api/signup", "/api/login", "/api/reissue"
     };
 
     private final JwtFilter jwtFilter;
