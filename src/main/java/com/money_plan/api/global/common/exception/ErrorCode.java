@@ -26,6 +26,10 @@ public enum ErrorCode {
     //  사용자,
     ACCOUNT_ALREADY_REGISTERED(CONFLICT, "중복된 게정이 존재합니다."),
     USER_NOT_FOUND(BAD_REQUEST, "사용자를 찾을 수 없습니다."),
+
+    // 카테고리
+    CATEGORY_NOT_FOUND(BAD_REQUEST, "카테고리를 찾을 수 없습니다."),
+    CATEGORY_DUPLICATED(BAD_REQUEST, "중복된 카테고리가 존재합니다."),
     ;
 
 
