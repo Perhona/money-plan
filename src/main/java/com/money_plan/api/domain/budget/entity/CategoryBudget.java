@@ -24,7 +24,7 @@ public class CategoryBudget {
     @JoinColumn(name = "monthly_budget_id", nullable = false)
     private MonthlyBudget monthlyBudget;
 
-    @ManyToOne
+    @ManyToOne  // FetchType을 지정하지 않으면 기본적으로 즉시 로딩 전략
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
@@ -45,5 +45,9 @@ public class CategoryBudget {
     @PreUpdate
     protected void onUpdate() {
         this.modifiedAt = LocalDateTime.now();
+    }
+
+    public void updateAmount(Long amount) {
+        this.amount = amount;
     }
 }

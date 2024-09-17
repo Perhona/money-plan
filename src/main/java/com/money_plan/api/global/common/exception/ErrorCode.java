@@ -30,6 +30,10 @@ public enum ErrorCode {
     // 카테고리
     CATEGORY_NOT_FOUND(BAD_REQUEST, "카테고리를 찾을 수 없습니다."),
     CATEGORY_DUPLICATED(BAD_REQUEST, "중복된 카테고리가 존재합니다."),
+
+    // 예산
+    MONTHLY_BUDGET_NOT_FOUND(BAD_REQUEST, "월별 예산을 찾을 수 없습니다."),
+    CATEGORY_BUDGET_NOT_FOUND(BAD_REQUEST, "카테고리별 예산을 찾을 수 없습니다."),
     ;
 
 

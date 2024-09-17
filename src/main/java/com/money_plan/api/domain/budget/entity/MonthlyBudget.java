@@ -21,7 +21,7 @@ public class MonthlyBudget {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne  // FetchType 지정 안하는 경우, 즉시 로딩(Eager Loading)됨.
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -34,7 +34,7 @@ public class MonthlyBudget {
     @Column(name = "total_budget", nullable = false)
     private Long totalBudget;
 
-    @OneToMany(mappedBy = "monthlyBudget", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "monthlyBudget", cascade = CascadeType.ALL, orphanRemoval = true) // FetchType을 설정하지 않는 경우, 기본적으로 Lazy Loading
     private List<CategoryBudget> categoryBudgets;
 
 
@@ -54,7 +54,7 @@ public class MonthlyBudget {
         this.modifiedAt = LocalDateTime.now();
     }
 
-    public void setCategoryBudgets(List<CategoryBudget> categoryBudgetList) {
-        this.categoryBudgets = categoryBudgetList;
+    public void updateTotalBudget(Long totalBudget) {
+        this.totalBudget = totalBudget;
     }
 }

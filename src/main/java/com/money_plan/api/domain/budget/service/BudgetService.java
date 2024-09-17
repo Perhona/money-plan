@@ -1,8 +1,6 @@
 package com.money_plan.api.domain.budget.service;
 
-import com.money_plan.api.domain.budget.dto.CategoryBudgetDto;
-import com.money_plan.api.domain.budget.dto.MonthlyBudgetRequestDto;
-import com.money_plan.api.domain.budget.dto.MonthlyBudgetResponseDto;
+import com.money_plan.api.domain.budget.dto.*;
 import com.money_plan.api.domain.budget.entity.CategoryBudget;
 import com.money_plan.api.domain.budget.entity.MonthlyBudget;
 import com.money_plan.api.domain.budget.repository.CategoryBudgetRepository;
@@ -19,10 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,16 +41,17 @@ public class BudgetService {
     private static List<CategoryBudgetDto> makeCategoryBudgetDtoList(MonthlyBudget monthlyBudget, List<CategoryBudget> categoryBudgetList) {
         return categoryBudgetList.stream()
                 .map(categoryBudget -> CategoryBudgetDto.builder()
+                        .id(categoryBudget.getId())
                         .categoryId(categoryBudget.getCategory().getId())
                         .amount(categoryBudget.getAmount())
                         .build())
                 .collect(Collectors.toList());
     }
 
-    private static MonthlyBudgetResponseDto makeMonthlyBudgetResponseDto(MonthlyBudget monthlyBudget, List<CategoryBudget> categoryBudgetList, User user) {
+    private static MonthlyBudgetResponseDto makeMonthlyBudgetResponseDto(MonthlyBudget monthlyBudget, List<CategoryBudget> categoryBudgetList, Long userId) {
         return MonthlyBudgetResponseDto.builder()
                 .id(monthlyBudget.getId())
-                .userId(user.getId())
+                .userId(userId)
                 .year(monthlyBudget.getYear())
                 .month(monthlyBudget.getMonth())
                 .totalBudget(monthlyBudget.getTotalBudget())
@@ -101,6 +97,43 @@ public class BudgetService {
 
         // 카테고리별 예산 저장
         categoryBudgetRepository.saveAll(categoryBudgetList);
-        return makeMonthlyBudgetResponseDto(monthlyBudget, categoryBudgetList, user);
+        return makeMonthlyBudgetResponseDto(monthlyBudget, categoryBudgetList, user.getId());
+    }
+
+    @Transactional
+    public MonthlyBudgetResponseDto updateMonthlyBudget(Long monthlyBudgetId, MonthlyBudgetUpdateRequestDto requestDto, CustomUserDetails userDetails) {
+        // 1. 기존의 MonthlyBudget 조회
+        MonthlyBudget monthlyBudget = monthlyBudgetRepository.findByIdAndUserId(monthlyBudgetId, userDetails.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.MONTHLY_BUDGET_NOT_FOUND));
+        // 2. 월별 총 예산 수정(Amount 변동이 있는 경우)
+        if (!requestDto.getTotalBudget().equals(monthlyBudget.getTotalBudget())) {
+            monthlyBudget.updateTotalBudget(requestDto.getTotalBudget());
+        }
+
+        // 3. 카테고리별 예산 추가 or 수정
+        List<CategoryBudget> updatedCategoryBudgets = new ArrayList<>();
+        if (!requestDto.getCategoryBudgetDtoList().isEmpty()) {
+            for (CategoryBudgetDto categoryBudgetDto : requestDto.getCategoryBudgetDtoList()) {
+                if (categoryBudgetDto.getId() == null) {
+                    // 3.1 새로운 카테고리 예산 추가
+                    Category category = categoryRepository.findById(categoryBudgetDto.getCategoryId()).orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+                    CategoryBudget categoryBudget = CategoryBudget.builder()
+                            .monthlyBudget(monthlyBudget)
+                            .category(category)
+                            .amount(categoryBudgetDto.getAmount())
+                            .build();
+                    categoryBudgetRepository.save(categoryBudget);
+                    updatedCategoryBudgets.add(categoryBudget);
+                } else {
+                    // 3.2 기존 카테고리 예산 수정
+                    CategoryBudget existingCategoryBudget = categoryBudgetRepository.findByIdAndMonthlyBudgetId(categoryBudgetDto.getId(), monthlyBudget.getId()).orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_BUDGET_NOT_FOUND));
+                    existingCategoryBudget.updateAmount(categoryBudgetDto.getAmount());
+                    updatedCategoryBudgets.add(existingCategoryBudget);
+                }
+            }
+        }
+
+        // 4. 응답 DTO 반환
+        return makeMonthlyBudgetResponseDto(monthlyBudget, updatedCategoryBudgets, userDetails.getUserId());
     }
 }

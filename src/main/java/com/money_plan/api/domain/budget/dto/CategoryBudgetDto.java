@@ -10,6 +10,9 @@ import lombok.Getter;
 @Getter
 @Schema(description = "카테고리별 예산 정보 DTO")
 public class CategoryBudgetDto {
+    @Schema(description = "카테고리 예산 ID", example = "1")
+    private Long id;
+
     @Schema(description = "카테고리 ID", example = "1")
     @NotNull(message = "카테고리 ID는 필수 입력 값입니다.")
     private Long categoryId;
