@@ -2,6 +2,7 @@ package com.money_plan.api.domain.budget.service;
 
 import com.money_plan.api.domain.budget.dto.*;
 import com.money_plan.api.domain.budget.entity.CategoryBudget;
+import com.money_plan.api.domain.budget.entity.CategoryBudgets;
 import com.money_plan.api.domain.budget.entity.MonthlyBudget;
 import com.money_plan.api.domain.budget.repository.CategoryBudgetRepository;
 import com.money_plan.api.domain.budget.repository.MonthlyBudgetRepository;
@@ -29,15 +30,6 @@ public class BudgetService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
 
-    private static MonthlyBudget makeMonthlyBudget(MonthlyBudgetRequestDto requestDto, User user) {
-        return MonthlyBudget.builder()
-                .user(user)
-                .year(requestDto.getYear())
-                .month(requestDto.getMonth())
-                .totalBudget(requestDto.getTotalBudget())
-                .build();
-    }
-
     private static List<CategoryBudgetDto> makeCategoryBudgetDtoList(MonthlyBudget monthlyBudget, List<CategoryBudget> categoryBudgetList) {
         return categoryBudgetList.stream()
                 .map(categoryBudget -> CategoryBudgetDto.builder()
@@ -61,43 +53,37 @@ public class BudgetService {
 
     @Transactional
     public MonthlyBudgetResponseDto createMonthlyBudget(CustomUserDetails userDetails, MonthlyBudgetRequestDto requestDto) {
-        // 사용자 정보 조회
+        // 1. 사용자 정보 조회
         User user = userRepository.findById(userDetails.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 월별 예산 저장
-        MonthlyBudget monthlyBudget = makeMonthlyBudget(requestDto, user);
+        // 2. 월별 예산 저장
+        MonthlyBudget monthlyBudget = MonthlyBudget.of(requestDto, user);
         monthlyBudgetRepository.save(monthlyBudget);
 
-        // 카테고리 ID 중복 검사
-        List<Long> categoryIds = requestDto.getCategoryBudgetDtoList().stream().map(CategoryBudgetDto::getCategoryId).toList();
+        // 3. 카테고리 ID 중복 검사 후 카테고리 조회
+        List<Long> categoryIds = getCategoryIds(requestDto);
+        Map<Long, Category> categoryMap = categoryRepository.findAllById(categoryIds).stream().collect(Collectors.toMap(Category::getId, category -> category));
+
+        // 4. 카테고리별 예산 생성
+        CategoryBudgets categoryBudgets = CategoryBudgets.from(monthlyBudget, requestDto.getCategoryBudgetDtoList(), categoryMap);
+
+        // 5. 카테고리별 예산 저장
+        categoryBudgetRepository.saveAll(categoryBudgets.getCategoryBudgetList());
+        return MonthlyBudgetResponseDto.of(monthlyBudget, categoryBudgets.getCategoryBudgetList(), user.getId());
+    }
+
+    private static List<Long> getCategoryIds(MonthlyBudgetRequestDto requestDto) {
+        // 카테고리 ID 중복검사 후 반환
+        List<Long> categoryIds = requestDto.getCategoryBudgetDtoList().stream()
+                .map(CategoryBudgetDto::getCategoryId)
+                .toList();
         Set<Long> uniqueCategoryIds = new HashSet<>(categoryIds);
+
         if (categoryIds.size() != uniqueCategoryIds.size()) {
             log.info(ErrorCode.CATEGORY_DUPLICATED.getMessage());
             throw new CustomException(ErrorCode.CATEGORY_DUPLICATED);
         }
-
-        // 카테고리 조회
-        Map<Long, Category> categoryMap = categoryRepository.findAllById(categoryIds).stream().collect(Collectors.toMap(Category::getId, category -> category));
-
-        List<CategoryBudget> categoryBudgetList = requestDto.getCategoryBudgetDtoList().stream()
-                .map(categoryBudgetDto -> {
-                    Category category = categoryMap.get(categoryBudgetDto.getCategoryId());
-                    // 카테고리 유효성 검사
-                    if (category == null) {
-                        log.info(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
-                        throw new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
-                    }
-
-                    return CategoryBudget.builder()
-                            .monthlyBudget(monthlyBudget)
-                            .category(category)
-                            .amount(categoryBudgetDto.getAmount())
-                            .build();
-                }).toList();
-
-        // 카테고리별 예산 저장
-        categoryBudgetRepository.saveAll(categoryBudgetList);
-        return makeMonthlyBudgetResponseDto(monthlyBudget, categoryBudgetList, user.getId());
+        return categoryIds;
     }
 
     @Transactional

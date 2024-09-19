@@ -1,10 +1,14 @@
 package com.money_plan.api.domain.budget.dto;
 
+import com.money_plan.api.domain.budget.entity.CategoryBudget;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Builder
 @Getter
@@ -21,4 +25,14 @@ public class CategoryBudgetDto {
     @Min(value = 0, message = "카테고리 예산 금액은 0원 이상으로 입력해야 합니다.")
     @NotNull(message = "카테고리 예산 금액은 필수 입력 값입니다.")
     private Long amount;
+
+    public static List<CategoryBudgetDto> listOf(List<CategoryBudget> categoryBudgetList) {
+        return categoryBudgetList.stream()
+                .map(categoryBudget -> CategoryBudgetDto.builder()
+                        .id(categoryBudget.getId())
+                        .categoryId(categoryBudget.getCategory().getId())
+                        .amount(categoryBudget.getAmount())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }

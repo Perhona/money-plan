@@ -1,5 +1,6 @@
 package com.money_plan.api.domain.budget.entity;
 
+import com.money_plan.api.domain.budget.dto.MonthlyBudgetRequestDto;
 import com.money_plan.api.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,8 +35,8 @@ public class MonthlyBudget {
     @Column(name = "total_budget", nullable = false)
     private Long totalBudget;
 
-    @OneToMany(mappedBy = "monthlyBudget", cascade = CascadeType.ALL, orphanRemoval = true) // FetchType을 설정하지 않는 경우, 기본적으로 Lazy Loading
-    private List<CategoryBudget> categoryBudgets;
+    @Embedded
+    private CategoryBudgets categoryBudgets;
 
 
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
@@ -56,5 +57,14 @@ public class MonthlyBudget {
 
     public void updateTotalBudget(Long totalBudget) {
         this.totalBudget = totalBudget;
+    }
+
+    public static MonthlyBudget of(MonthlyBudgetRequestDto requestDto, User user) {
+        return MonthlyBudget.builder()
+                .user(user)
+                .year(requestDto.getYear())
+                .month(requestDto.getMonth())
+                .totalBudget(requestDto.getTotalBudget())
+                .build();
     }
 }

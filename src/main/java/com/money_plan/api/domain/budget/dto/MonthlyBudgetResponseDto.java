@@ -1,5 +1,7 @@
 package com.money_plan.api.domain.budget.dto;
 
+import com.money_plan.api.domain.budget.entity.CategoryBudget;
+import com.money_plan.api.domain.budget.entity.MonthlyBudget;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -31,4 +33,15 @@ public class MonthlyBudgetResponseDto {
 
     @Schema(description = "카테고리별 예산 목록")
     private List<CategoryBudgetDto> categoryBudgetDtoList;
+
+    public static MonthlyBudgetResponseDto of(MonthlyBudget monthlyBudget, List<CategoryBudget> categoryBudgetList, Long userId) {
+        return MonthlyBudgetResponseDto.builder()
+                .id(monthlyBudget.getId())
+                .userId(userId)
+                .year(monthlyBudget.getYear())
+                .month(monthlyBudget.getMonth())
+                .totalBudget(monthlyBudget.getTotalBudget())
+                .categoryBudgetDtoList(CategoryBudgetDto.listOf(categoryBudgetList))
+                .build();
+    }
 }
