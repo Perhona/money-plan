@@ -1,6 +1,9 @@
 package com.money_plan.api.domain.budget.service;
 
-import com.money_plan.api.domain.budget.dto.*;
+import com.money_plan.api.domain.budget.dto.CategoryBudgetDto;
+import com.money_plan.api.domain.budget.dto.MonthlyBudgetRequestDto;
+import com.money_plan.api.domain.budget.dto.MonthlyBudgetResponseDto;
+import com.money_plan.api.domain.budget.dto.MonthlyBudgetUpdateRequestDto;
 import com.money_plan.api.domain.budget.entity.CategoryBudget;
 import com.money_plan.api.domain.budget.entity.CategoryBudgets;
 import com.money_plan.api.domain.budget.entity.MonthlyBudget;
@@ -18,7 +21,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -97,29 +103,23 @@ public class BudgetService {
         }
 
         // 3. 카테고리별 예산 추가 or 수정
-        List<CategoryBudget> updatedCategoryBudgets = new ArrayList<>();
-        if (!requestDto.getCategoryBudgetDtoList().isEmpty()) {
-            for (CategoryBudgetDto categoryBudgetDto : requestDto.getCategoryBudgetDtoList()) {
-                if (categoryBudgetDto.getId() == null) {
-                    // 3.1 새로운 카테고리 예산 추가
-                    Category category = categoryRepository.findById(categoryBudgetDto.getCategoryId()).orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
-                    CategoryBudget categoryBudget = CategoryBudget.builder()
-                            .monthlyBudget(monthlyBudget)
-                            .category(category)
-                            .amount(categoryBudgetDto.getAmount())
-                            .build();
-                    categoryBudgetRepository.save(categoryBudget);
-                    updatedCategoryBudgets.add(categoryBudget);
-                } else {
-                    // 3.2 기존 카테고리 예산 수정
-                    CategoryBudget existingCategoryBudget = categoryBudgetRepository.findByIdAndMonthlyBudgetId(categoryBudgetDto.getId(), monthlyBudget.getId()).orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_BUDGET_NOT_FOUND));
-                    existingCategoryBudget.updateAmount(categoryBudgetDto.getAmount());
-                    updatedCategoryBudgets.add(existingCategoryBudget);
-                }
+        CategoryBudgets categoryBudgets = monthlyBudget.getCategoryBudgets();
+        for (CategoryBudgetDto categoryBudgetDto : requestDto.getCategoryBudgetDtoList()) {
+            if (categoryBudgetDto.getId() == null) {
+                // 3.1 새로운 카테고리 예산 추가
+                Category category = categoryRepository.findById(categoryBudgetDto.getCategoryId()).orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+                categoryBudgets.addCategoryBudget(category, categoryBudgetDto.getAmount(), monthlyBudget);
+            } else {
+                // 3.2 기존 카테고리 예산 수정
+                categoryBudgets.updateCategoryBudget(categoryBudgetDto.getId(), categoryBudgetDto.getAmount(), monthlyBudget);
             }
         }
 
-        // 4. 응답 DTO 반환
-        return makeMonthlyBudgetResponseDto(monthlyBudget, updatedCategoryBudgets, userDetails.getUserId());
+        // 4. 카테고리별 예산 저장
+        List<CategoryBudget> updatedCategoryBudgetList = categoryBudgets.getCategoryBudgetList();
+        categoryBudgetRepository.saveAll(updatedCategoryBudgetList);
+
+        // 5. 응답 DTO 반환
+        return makeMonthlyBudgetResponseDto(monthlyBudget, updatedCategoryBudgetList, userDetails.getUserId());
     }
 }
